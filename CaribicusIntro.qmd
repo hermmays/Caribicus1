@@ -9,3 +9,5 @@ bibliography: CaribicusIntro.bib
 # Introduction
 
 ![*Caribicus warreni*, captive specimen, Nashville Zoo, 2022.](images/Haitian_galliwasp_nashvillezoo.png)
+
+*Last updated: r format(Sys.time(), '%B %d, %Y %H:%M')*
