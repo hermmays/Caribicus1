@@ -1,0 +1,208 @@
+---
+title: "CaribicusFst"
+
+editor: visual
+knitr: true
+bibliography: CaribicusFst.bib
+---
+
+# Fixed differences, F~ST~, and Nei's distance
+
+## Goals
+
+What follows is our workflow for estimating pairwise fixed differences, genetic differentiation (F~ST~), and Nei's genetic distance among galliwasp species and populations based on the filtered SNP dataset generated from genotyping-by-sequencing (GBS) data.
+
+## Getting started
+
+We are using *R* version (v) 4.5.2 and *RStudio* v 2026.01.0-392 for the analysis. *Quarto* v 1.6.39 for MacOS was used to document the workflow. Set the working directory in *RStudio* to one where the filtered `vcf.gz` file and the taxon/population designation file are available.
+
+## General methods summary
+
+Pairwise fixed differences were estimated using the `gl.fixed.diff` function in *dartR.base* v 0.98 [@dartR.base] under default parameters (`alpha = 0.05`, `delta = 0.02`) with p-values estimated for each pairwise comparison. Pairwise F~ST~ was estimated using the `stamppFst` function and pairwise Nei's distances were calculated using the `stamppNeisD` function in *StAMPP* v 1.6.3 [@StAMPP]. Both F~ST~ and Nei's distance are displayed as heatmaps with groups ordered from the lowest to highest mean pairwise values using *ggplot2* v 3.5.2 [@ggplot2]. Groups for all analyses are defined by the `pop` column in `Caribicus_pops1.txt`.
+
+## Packages
+
+- vcfR [@vcfR]
+
+- adegenet [@adegenet]
+
+- StaMPP [@StAMPP]
+
+- reshape2 [@reshape2]
+
+- dartR.base [@dartR.base]
+
+```{r}
+#| label: Load package libraries
+library(vcfR)
+library(adegenet)
+library(StAMPP)
+library(ggplot2)
+library(reshape2)
+library(dartR.base)
+```
+
+## Data files
+
+This analysis requires the following data files.
+
+- `Caribicus.variants.filtered.vcf.gz` The filtered `vcf` file generated in the [SNP filtering and analysis](CaribicusSNPs.html) page.
+
+- `Caribicus_pops1.txt` The text file containing the individual sample identifications and population/taxon designations used for this analysis.
+
+## VCF file
+
+Load the SNP data from the filtered `vcf.gz` file.
+
+```{r}
+#| label: Read filtered vcf
+CaribicusVCF <- read.vcfR("data/vcf/Caribicus.variants.filtered.vcf.gz")
+CaribicusVCF
+```
+
+## Taxon and population assignments
+
+Read the population assignments from `Caribicus_pops1.txt`. Subset to only include samples present in the VCF file and summarize the group counts.
+
+```{r}
+#| label: Read population assignments
+CaribicusPOPS <- read.table("data/taxa/Caribicus_pops1.txt", sep = "\t", header = TRUE)
+CaribicusPOPS <- CaribicusPOPS[CaribicusPOPS$id %in% colnames(CaribicusVCF@gt), ]
+table(CaribicusPOPS$pop)
+```
+
+Verify that the sample IDs in the population file match those in the VCF file.
+
+```{r}
+#| label: Verify sample ID match
+match_result <- CaribicusPOPS$id %in% colnames(CaribicusVCF@gt)[-1]
+match_summary <- table(match_result)
+print(match_summary)
+not_matching <- CaribicusPOPS$id[!match_result]
+print("Samples not matching:")
+print(not_matching)
+```
+
+## Convert data to genlight format
+
+Convert the VCF object to a genlight object, set ploidy to 2 for these diploid organisms, and assign populations from `Caribicus_pops1.txt`. The `match()` function ensures population assignments are ordered correctly relative to the genlight individual order regardless of sample ordering in the population file.
+
+```{r}
+#| label: Convert to genlight
+CaribicusGEN <- vcfR2genlight(CaribicusVCF)
+ploidy(CaribicusGEN) <- 2
+pop(CaribicusGEN) <- CaribicusPOPS$pop[match(indNames(CaribicusGEN), CaribicusPOPS$id)]
+```
+
+## Fixed differences
+
+Run a compliance check on the genlight object using the `gl.compliance.check` function in *dartR.base* prior to the fixed differences analysis.
+
+```{r}
+#| label: Fixed differences compliance check
+CaribicusGENfdiff <- gl.compliance.check(CaribicusGEN)
+```
+
+Estimate pairwise fixed SNP differences between all groups using `gl.fixed.diff` under the default parameters (`alpha = 0.05`, `delta = 0.02`) and include a statistical test for each pairwise comparison (`test = TRUE`).
+
+```{r}
+#| label: Fixed differences
+#| cache: true 
+CaribicusFDIFF <- gl.fixed.diff(CaribicusGENfdiff, test = TRUE)
+```
+
+The number of fixed differences (`$fd`) and percent fixed differences (`$pcfd`) are combined into a single table displayed as count (percent).
+
+```{r}
+#| label: Fixed differences table
+fd <- as.matrix(CaribicusFDIFF$fd)
+pcfd <- as.matrix(CaribicusFDIFF$pcfd)
+combined <- matrix("", nrow = nrow(fd), ncol = ncol(fd), dimnames = dimnames(fd))
+for (i in 1:nrow(fd)) {
+  for (j in 1:ncol(fd)) {
+    if (!is.na(fd[i, j])) {
+      combined[i, j] <- paste0(fd[i, j], " (", pcfd[i, j], "%)")
+    }
+  }
+}
+knitr::kable(combined,
+             caption = "Pairwise fixed differences: count (percent of loci)",
+             align = "r")
+```
+
+## F~ST~ and Nei's distance
+
+Generate pairwise F~ST~ and Nei's distance estimates from the genlight object. The lower triangle of each resulting matrix is reflected to the upper triangle to produce a symmetric matrix for heatmap visualization.
+
+```{r}
+#| label: Estimate Fst and Neis distance
+CaribicusFST <- stamppFst(CaribicusGEN, nboots = 100, percent = 95, nclusters = 4)
+CaribicusFSTmatrix <- CaribicusFST$Fsts
+CaribicusFSTmatrix[upper.tri(CaribicusFSTmatrix)] <- t(CaribicusFSTmatrix)[upper.tri(CaribicusFSTmatrix)]
+CaribicusFSTheat <- reshape::melt(CaribicusFSTmatrix)
+
+CaribicusNeiDmatrix <- stamppNeisD(CaribicusGEN, pop = TRUE)
+CaribicusNeiDmatrix[upper.tri(CaribicusNeiDmatrix)] <- t(CaribicusNeiDmatrix)[upper.tri(CaribicusNeiDmatrix)]
+CaribicusNeiDheat <- reshape::melt(CaribicusNeiDmatrix)
+```
+
+Examine the full F~ST~ results including bootstrap p-values.
+
+```{r}
+#| label: Print Fst results
+CaribicusFST
+```
+
+### Pairwise F~ST~ heatmap
+
+Groups are ordered from the lowest to highest mean pairwise F~ST~ value. Values are rounded to three decimal places and displayed in each cell; diagonal cells (self-comparisons) are shown in grey.
+
+```{r}
+#| label: Fst heatmap ordered low to high
+#| fig-width: 10
+#| fig-height: 9
+# Order groups from lowest to highest mean Fst
+Caribicus_FSTordered <- CaribicusFSTheat
+Caribicus_FSTordered$X1 <- reorder(factor(Caribicus_FSTordered$X1),
+                                    Caribicus_FSTordered$value, mean, na.rm = TRUE)
+Caribicus_FSTordered$X2 <- reorder(factor(Caribicus_FSTordered$X2),
+                                    Caribicus_FSTordered$value, mean, na.rm = TRUE)
+ggplot(Caribicus_FSTordered, aes(x = X1, y = X2, fill = value)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = ifelse(is.na(value), "", round(value, 3))), size = 3) +
+  scale_fill_gradient(low = "white", high = "darkred",
+                      name = expression(F[ST]), na.value = "grey90") +
+  labs(x = NULL, y = NULL,
+       title = expression("Pairwise" ~ F[ST] ~ "(ordered lowest to highest)")) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+        axis.text.y = element_text(size = 9),
+        plot.title = element_text(size = 11))
+```
+
+### Pairwise Nei's distance heatmap
+
+Groups are ordered from the lowest to highest mean pairwise Nei's distance. Values are rounded to three decimal places and displayed in each cell; diagonal cells (self-comparisons) are shown in grey.
+
+```{r}
+#| label: Neis distance heatmap ordered low to high
+#| fig-width: 10
+#| fig-height: 9
+# Order groups from lowest to highest mean Nei's distance
+Caribicus_NeiDordered <- CaribicusNeiDheat
+Caribicus_NeiDordered$X1 <- reorder(factor(Caribicus_NeiDordered$X1),
+                                     Caribicus_NeiDordered$value, mean, na.rm = TRUE)
+Caribicus_NeiDordered$X2 <- reorder(factor(Caribicus_NeiDordered$X2),
+                                     Caribicus_NeiDordered$value, mean, na.rm = TRUE)
+ggplot(Caribicus_NeiDordered, aes(x = X1, y = X2, fill = value)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = ifelse(is.na(value), "", round(value, 3))), size = 3) +
+  scale_fill_gradient(low = "white", high = "darkblue",
+                      name = "Nei's D", na.value = "grey90") +
+  labs(x = NULL, y = NULL,
+       title = "Pairwise Nei's distance (ordered lowest to highest)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 9),
+        axis.text.y = element_text(size = 9),
+        plot.title = element_text(size = 11))
+```

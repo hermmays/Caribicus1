@@ -1,0 +1,26 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  sidebar: false
+  navbar:
+    left:
+      - href: index.qmd
+        text: Title and authors
+      - CaribicusIntro.qmd
+      - CaribicusSNPs.qmd
+      - CaribicusFst.qmd
+      - CaribicusTrees.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    grid:
+      sidebar-width: 0px
+      body-width: 1200px
+
+editor: visual
+

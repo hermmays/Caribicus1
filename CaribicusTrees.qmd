@@ -1,0 +1,68 @@
+---
+title: "CaribicusTrees"
+
+editor: visual
+knitr: true
+bibliography: CaribicusTrees.bib
+---
+
+# Caribicus species trees
+
+## Goals
+
+What follows are species trees generated from the filtered SNP dataset from genotyping-by-sequencing (GBS) data.
+
+## Getting started
+
+We are using *R* version (v) 4.5.2 and *RStudio* v 2026.01.0-392 for the analysis. *Quarto* v 1.6.39 for MacOS was used to document the workflow. Some work was performed on the Pitzer cluster at the Ohio Supercomputing Center. Set the working directory in *RStudio* to one where the filtered `vcf.gz` file and the taxon/population designation file are available.
+
+## General methods summary
+
+## Packages
+
+- ape [@ape]
+
+- phytools [@phytools]
+
+  ## IQ-Tree
+
+IQ-Tree version 3
+
+```{r}
+#| Label: Load package libraries
+library(ape)
+library(phytools)
+```
+
+Read the treefile from IQ-Tree and root on the midpoint.
+
+```{r}
+#| Label: Outgroup rooted IQTREE with colors
+#| fig-width: 8
+#| fig-height: 13
+# Read the taxa file to assign species names to project numbers
+CaribicusTAXA <- read.table("data/taxa/Caribicus_taxa1.txt", sep = "\t", header = TRUE)
+
+ColorPal_CUSTOM <- c("#004949", "#DB6D00", "#D82632", "#290AD8", "#FED439",
+                     "#B66DFF", "#006DDB", "#FA9C88", "#924900",
+                     "#7BA9CB", "#008600", "#FF6984", "#5C3317", "#1CE6FF")
+
+# Map population codes (alphabetical) to colors — used for tip color lookup
+pop_colors <- setNames(ColorPal_CUSTOM, sort(unique(CaribicusTAXA$pop)))
+
+# Separate named vector with formal species names — used for legend only
+species_names <- read.table("data/taxa/Caribicus_species_names.txt",
+                            sep = "\t", header = TRUE)
+pop_colors_legend <- setNames(pop_colors,
+                              species_names$formal[match(names(pop_colors), species_names$code)])
+
+Caribicus_IQTREE <- read.tree("data/iqtree/Caribicus_iqtree.treefile")
+
+# Map each tip label (sample ID) to its population color
+tip_cols <- pop_colors[CaribicusTAXA$pop[match(Caribicus_IQTREE$tip.label, CaribicusTAXA$id)]]
+
+plot(Caribicus_IQTREE, cex = 0.9, tip.color = tip_cols)
+nodelabels(Caribicus_IQTREE$node.label, cex = 0.6, frame = "none", adj = c(1.2, -0.3))
+legend(x = 0, y = 20, legend = names(pop_colors_legend), fill = pop_colors_legend,
+       cex = 0.9, bty = "n", xpd = TRUE, text.font = 3)
+```

@@ -1,0 +1,11 @@
+---
+title: "Introduction"
+
+editor: visual
+knitr: true
+bibliography: CaribicusIntro.bib
+---
+
+# Introduction
+
+![*Caribicus warreni*, captive specimen, Nashville Zoo, 2022.](images/Haitian_galliwasp_nashvillezoo.png)
