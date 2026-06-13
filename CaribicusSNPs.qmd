@@ -992,4 +992,4 @@ print(Warreni_DAPCbar)
 dev.off()
 ```
 
-*Last updated: r format(Sys.time(), '%B %d, %Y %H:%M')*
+*Last updated: `r format(Sys.time(), '%B %d, %Y %H:%M')`*
