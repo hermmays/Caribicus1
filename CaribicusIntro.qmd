@@ -8,6 +8,6 @@ bibliography: CaribicusIntro.bib
 
 # Introduction
 
-![Caribicus warreni, captive specimen, Nashville Zoo, 2022.](images/Haitian_galliwasp_nashvillezoo.png)
+![Caribicus warreni, captive specimen, Nashville Zoo, 2022.](images/Haitian_galliwasp_nashvillezoo.png){fig-align="center"}
 
 *Last updated: `r format(Sys.time(), '%B %d, %Y %H:%M')`*
