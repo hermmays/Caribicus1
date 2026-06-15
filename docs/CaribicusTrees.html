@@ -233,7 +233,7 @@ div.csl-indent {
 <pre><code>Loading required package: maps</code></pre>
 </div>
 </div>
-<p>Read the treefile from IQ-Tree and root on the midpoint.</p>
+<p>Read the treefile from IQ-Tree. The IQ-TREE analysis was run on the filtered SNP dataset converted to phylip format using <code>vcf2phylip.py</code>. IQ-TREE requires all sites to be variable when using the ascertainment bias correction (<code>+ASC</code>), so it automatically generates a variable sites only phylip file (<code>Caribicus_iqtree.varsites.phy</code>) from which the tree is built. IQ-TREE was also run on a FASTA formatted version of the filtered SNP dataset generated using <code>vcfR2DNAbin</code> in <code>vcfR</code>. The filtered dataset contains 24,398 SNPs, however 9,124 sites contain IUPAC ambiguity codes representing heterozygous genotypes. IQ-TREE treats sites with ambiguity codes as invariant, leaving 15,274 variable sites. As a result both analyses from the phylip and FASTA inputs are effectively built from the same 15,274 variable sites and produce identical topologies and bootstrap support values.</p>
 <div class="cell" data-label="Outgroup rooted IQTREE with colors">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the taxa file to assign species names to project numbers</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>CaribicusTAXA <span class="ot">&lt;-</span> <span class="fu">read.table</span>(<span class="st">"data/taxa/Caribicus_taxa1.txt"</span>, <span class="at">sep =</span> <span class="st">"</span><span class="sc">\t</span><span class="st">"</span>, <span class="at">header =</span> <span class="cn">TRUE</span>)</span>
@@ -251,7 +251,7 @@ div.csl-indent {
 <span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>pop_colors_legend <span class="ot">&lt;-</span> <span class="fu">setNames</span>(pop_colors,</span>
 <span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>                              species_names<span class="sc">$</span>formal[<span class="fu">match</span>(<span class="fu">names</span>(pop_colors), species_names<span class="sc">$</span>code)])</span>
 <span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>Caribicus_IQTREE <span class="ot">&lt;-</span> <span class="fu">read.tree</span>(<span class="st">"data/iqtree/Caribicus_iqtree.treefile"</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>Caribicus_IQTREE <span class="ot">&lt;-</span> <span class="fu">read.tree</span>(<span class="st">"data/iqtree/phy/Caribicus_iqtree_varsites.treefile"</span>)</span>
 <span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Map each tip label (sample ID) to its population color</span></span>
 <span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>tip_cols <span class="ot">&lt;-</span> pop_colors[CaribicusTAXA<span class="sc">$</span>pop[<span class="fu">match</span>(Caribicus_IQTREE<span class="sc">$</span>tip.label, CaribicusTAXA<span class="sc">$</span>id)]]</span>
@@ -268,7 +268,7 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p><em>Last updated: June 13, 2026 15:00</em></p>
+<p><em>Last updated: June 15, 2026 12:59</em></p>
 
 
 

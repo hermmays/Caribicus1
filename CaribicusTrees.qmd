@@ -34,7 +34,7 @@ library(ape)
 library(phytools)
 ```
 
-Read the treefile from IQ-Tree and root on the midpoint.
+Read the treefile from IQ-Tree. The IQ-TREE analysis was run on the filtered SNP dataset converted to phylip format using `vcf2phylip.py`. IQ-TREE requires all sites to be variable when using the ascertainment bias correction (`+ASC`), so it automatically generates a variable sites only phylip file (`Caribicus_iqtree.varsites.phy`) from which the tree is built. IQ-TREE was also run on a FASTA formatted version of the filtered SNP dataset generated using `vcfR2DNAbin` in `vcfR`. The filtered dataset contains 24,398 SNPs, however 9,124 sites contain IUPAC ambiguity codes representing heterozygous genotypes. IQ-TREE treats sites with ambiguity codes as invariant, leaving 15,274 variable sites. As a result both analyses from the phylip and FASTA inputs are effectively built from the same 15,274 variable sites and produce identical topologies and bootstrap support values.
 
 ```{r}
 #| Label: Outgroup rooted IQTREE with colors
@@ -56,7 +56,7 @@ species_names <- read.table("data/taxa/Caribicus_species_names.txt",
 pop_colors_legend <- setNames(pop_colors,
                               species_names$formal[match(names(pop_colors), species_names$code)])
 
-Caribicus_IQTREE <- read.tree("data/iqtree/Caribicus_iqtree.treefile")
+Caribicus_IQTREE <- read.tree("data/iqtree/phy/Caribicus_iqtree_varsites.treefile")
 
 # Map each tip label (sample ID) to its population color
 tip_cols <- pop_colors[CaribicusTAXA$pop[match(Caribicus_IQTREE$tip.label, CaribicusTAXA$id)]]

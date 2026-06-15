@@ -334,12 +334,18 @@ CaribicusSNPs.filtered.mac2 <- min_mac(CaribicusSNPs.filtered, min.mac = 2)
 CaribicusSNPs.filtered.mac2
 ```
 
-Convert the filtered vcf file to a genlight object, assign populations, produce a pairwise divergence matrix, and a network using splitstree.
+Convert the filtered vcf file to a genlight object, count the number of invariant sites, convert to a fasta file for the later tree building analyses, assign populations, produce a pairwise divergence matrix, and a network using splitstree.
 
 ```{r}
 #| label: Convert to genlight object and generate matrix and network
 # Convert to genlight
 CaribicusSNPs.gen <- vcfR2genlight(CaribicusSNPs.filtered)
+# Count invariant sites in the genlight object
+locus_var <- glVar(CaribicusSNPs.gen)
+sum(locus_var == 0)
+# Convert to genlight to fasta
+dna <- vcfR2DNAbin(CaribicusSNPs.filtered, consensus = TRUE, extract.haps = FALSE)
+write.FASTA(dna, file = "data/iqtree/fasta/Caribicus_gl2fasta.fasta")
 # Assign populations
 CaribicusSNPs.gen@pop <- as.factor(CaribicusSNPs.gen@ind.names)
 # Generate pairwise matrix
