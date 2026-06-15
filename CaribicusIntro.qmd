@@ -6,8 +6,6 @@ knitr: true
 bibliography: CaribicusIntro.bib
 ---
 
-Introduction
-
 This is a study of galliwasps on the island of Hispaniola with an emphasis on the genus *Caribicus*.
 
 ![Caribicus warreni, captive specimen, Nashville Zoo, 2022.](images/Haitian_galliwasp_nashvillezoo.jpg){fig-align="center"}
